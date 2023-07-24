@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html, body{
+    background-color: antiquewhite;
+    height: 100vh;
+    height: 100%;
+    
+}
