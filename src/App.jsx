@@ -2,8 +2,8 @@ import './App.css';
 import { useState,useEffect } from 'react';
 import { Button, Modal } from 'antd';
 import PrizeModel from './PrizeModel';
+import WheelComponent from 'react-wheel-of-prizes'
 
-import WheelComponent from 'react-wheel-of-prizes';
 
 function App() {
   const [username, setUsername] = useState('');
@@ -11,7 +11,7 @@ function App() {
   const [remainingSpins, setRemainingSpins] = useState(0); // Initialize remainingSpins state
   const [prizeName, setPrizeName] = useState('');
   const [purchasedSpins, setPurchasedSpins] = useState(0);
-  const [isSpinning, setIsSpinning] = useState(false);
+  
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleCancel = () => {
@@ -57,12 +57,12 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    // Clear the token from state and local storage
-    setToken('');
-    localStorage.removeItem('token');
-    setUsername('');
-  };
+  // const handleLogout = () => {
+  //   // Clear the token from state and local storage
+  //   setToken('');
+  //   localStorage.removeItem('token');
+  //   setUsername('');
+  // };
   const handleSpin = async () => {
     try {
       
@@ -127,21 +127,21 @@ function App() {
     }
   };
   // Function to handle the spinning animation
-  const handleSpinAnimation = () => {
-    // Calculate the random rotation angle for the spinning wheel
-    const randomAngle = Math.floor(Math.random() * 360) + 3600;
+  // const handleSpinAnimation = () => {
+  //   // Calculate the random rotation angle for the spinning wheel
+  //   const randomAngle = Math.floor(Math.random() * 360) + 3600;
 
-    // Rotate the wheel for a certain duration
-    const spinningWheel = document.querySelector('.spinning-wheel-container');
-    spinningWheel.style.transition = 'transform 6s ease-out';
-    spinningWheel.style.transform = `rotate(${randomAngle}deg)`;
+  //   // Rotate the wheel for a certain duration
+  //   const spinningWheel = document.querySelector('.spinning-wheel-container');
+  //   spinningWheel.style.transition = 'transform 6s ease-out';
+  //   spinningWheel.style.transform = `rotate(${randomAngle}deg)`;
 
-    // Reset the wheel rotation after the animation is finished
-    setTimeout(() => {
-      spinningWheel.style.transition = 'none';
-      spinningWheel.style.transform = 'rotate(0deg)';
-    }, 6000);
-  };
+  //   // Reset the wheel rotation after the animation is finished
+  //   setTimeout(() => {
+  //     spinningWheel.style.transition = 'none';
+  //     spinningWheel.style.transform = 'rotate(0deg)';
+  //   }, 6000);
+  // };
   //vòng quay bắt đầu 
 
   const segColors = [
@@ -152,22 +152,30 @@ function App() {
     '#34A24F',
     '#F9AA1F',
     '#EC3F3F',
-    '#FF9000'
+    '#00FFFF',
+    '#C0C0C0',
+    '#00FF00',
+    '#FF00FF',
+    '#66FF99'
+
+   
   ];
-  const [spinning, setSpinning] = useState(false);
+  // const [spinning, setSpinning] = useState(false);
   const [winningSegment, setWinningSegment] = useState(null);
   const handonFinished = () => {
     handleSpin();
+    
   };
-  const handleSpinClick = () => {
-    if (!spinning) {
-      // Calculate the random winning segment
-      const randomIndex = Math.floor(Math.random() * segments.length);
-      const winningSegment = segments[randomIndex];
-      setWinningSegment(winningSegment);
-      setSpinning(true);
-    }
-  };
+  // const handleSpinClick = () => {
+  //   if (!spinning) {
+      
+  //     // Calculate the random winning segment
+  //     const randomIndex = Math.floor(Math.random() * segments.length);
+  //     const winningSegment = segments[randomIndex];
+  //     setWinningSegment(winningSegment);
+  //     setSpinning(true);
+  //   }
+  // };
   // kết thúc vòng quay 
   //gifts
   const fetchPrizeData = async () => {
@@ -240,44 +248,49 @@ function App() {
       name: 'Airpods',
       author: 'Airpods 10 pro',
     },
+   
     {
       id: 6,
-      name: 'Airpods',
-      author: 'Airpods 10 pro',
+      name: 'Voucher 20%',
+      author: 'Voucher 20%',
     },
+   
+    
+    
+
   ];
   const segments = gifts.map((gift) => gift.name);
-  const isSpinDisabled = remainingSpins === 0;
+  // const segments = prizes.map((prize) => prize.name);
+  
 
   return (
-    <div className='justify-center text-center ' style={{marginTop:"20px"}}>
-      <h1 className='text-4xl font-black text-center mt-11 text-red-500'>Vòng quay may mắn </h1>
+    <div className='justify-center text-center ' style={{marginTop:"50px"}}>
+      <h1 className='text-4xl font-black text-center mt-11 text-red-500 mt-2' >Vòng quay may mắn </h1>
+     
       {token ? (
-        <div>
-          <p className='text-center text-green-800 text-2xl font-bold mt-3'>chúc mừng tài khoản: {username}</p>
-         
-          <Button type='primary' className='bg-gray-700 mx-2' onClick={handleSpin}>
-        Quay nào !
-      </Button>
-      <Button type='primary' className='bg-gray-700 mx-2' onClick={handlePurchaseSpins}>
+        
+        <div className='mt-5'>
+           <div >
+          <p className=' text-green-800 text-2xl font-bold '>Số lượt của bạn là : {remainingSpins}</p>
+
+        {/* <p className=' text-green-800 text-2xl font-bold '>Phần quà của bạn là: {prizeName}</p> */}
+      </div>
+      <Button type='primary' className='bg-gray-700 mx-2 mt-2' onClick={handlePurchaseSpins}>
         Thêm vòng quay
       </Button>
-      <Button type='primary' className='bg-gray-700 mx-2' onClick={showModal} >
+      <Button type='primary' className='bg-gray-700 mx-2 mt-2' onClick={showModal} >
           Phần Thưởng !
         </Button>
-        <Button type='primary' className='bg-gray-700 mx-2' onClick={handleLogout}>
+        {/* <Button type='primary' className='bg-gray-700 mx-2' onClick={handleLogout}>
             Logout
-          </Button>
-      <div className='m-16'>
-        <p className=' text-green-800 text-2xl font-bold '>Số lượt của bạn là : {remainingSpins}</p>
-        <p className=' text-green-800 text-2xl font-bold '>phần quà của bạn là: {prizeName}</p>
-      </div>
+          </Button> */}
+     
       <Modal visible={isModalOpen}  onCancel={handleCancel} footer={null}>
      
        <PrizeModel prizes={prizes}  prizeName={prizeName} />
       </Modal>
       
-          <div className="flex justify-center items-center ml-96">
+          <div className="flex justify-center items-center ml-96 mt-2">
           <WheelComponent
           segments={segments}
           segColors={segColors}
@@ -288,17 +301,15 @@ function App() {
           buttonText="quay nào"
           isOnlyOnce={false}
           size={290}
-          upDuration={100}
+          upDuration={300}
           downDuration={1000}
           fontFamily='Arial'
-          disabled={isSpinDisabled}
-          
+          disabled={remainingSpins === 0}
         />
-         
-          </div>
-         
 
+          </div>
         </div>
+        
       ) : (
         <Button type='primary' className='bg-gray-700 m-16' onClick={handleLogin}>
           

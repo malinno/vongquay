@@ -12,7 +12,9 @@
   "dependencies": {
     "antd": "^5.7.2",
     "autoprefixer": "^10.4.14",
+    "gdxjs": "^1.1.86",
     "jsonwebtoken": "^9.0.1",
+    "patch-package": "^7.0.2",
     "postcss": "^8.4.27",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

@@ -1,0 +1,471 @@
+diff --git a/node_modules/react-wheel-of-prizes/dist/index.js b/node_modules/react-wheel-of-prizes/dist/index.js
+index 33c7ba4..c477fad 100644
+--- a/node_modules/react-wheel-of-prizes/dist/index.js
++++ b/node_modules/react-wheel-of-prizes/dist/index.js
+@@ -9,7 +9,7 @@ var WheelComponent = function WheelComponent(_ref) {
+       winningSegment = _ref.winningSegment,
+       onFinished = _ref.onFinished,
+       _ref$primaryColor = _ref.primaryColor,
+-      primaryColor = _ref$primaryColor === void 0 ? 'black' : _ref$primaryColor,
++      primaryColor = _ref$primaryColor === void 0 ? 'red' : _ref$primaryColor,
+       _ref$contrastColor = _ref.contrastColor,
+       contrastColor = _ref$contrastColor === void 0 ? 'white' : _ref$contrastColor,
+       _ref$buttonText = _ref.buttonText,
+@@ -17,7 +17,7 @@ var WheelComponent = function WheelComponent(_ref) {
+       _ref$isOnlyOnce = _ref.isOnlyOnce,
+       isOnlyOnce = _ref$isOnlyOnce === void 0 ? true : _ref$isOnlyOnce,
+       _ref$size = _ref.size,
+-      size = _ref$size === void 0 ? 290 : _ref$size,
++      size = _ref$size === void 0 ? 280 : _ref$size,
+       _ref$upDuration = _ref.upDuration,
+       upDuration = _ref$upDuration === void 0 ? 100 : _ref$upDuration,
+       _ref$downDuration = _ref.downDuration,
+@@ -26,6 +26,9 @@ var WheelComponent = function WheelComponent(_ref) {
+       fontFamily = _ref$fontFamily === void 0 ? 'proxima-nova' : _ref$fontFamily;
+   var currentSegment = '';
+   var isStarted = false;
++  // Thêm các biến mới
++  const [needleAngle, setNeedleAngle] = React.useState(0);
++  const [spinSpeed, setSpinSpeed] = React.useState(0);
+ 
+   var _useState = React.useState(false),
+       isFinished = _useState[0],
+@@ -82,48 +85,7 @@ var WheelComponent = function WheelComponent(_ref) {
+     }
+   };
+ 
+-  var onTimerTick = function onTimerTick() {
+-    frames++;
+-    draw();
+-    var duration = new Date().getTime() - spinStart;
+-    var progress = 0;
+-    var finished = false;
+-
+-    if (duration < upTime) {
+-      progress = duration / upTime;
+-      angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2);
+-    } else {
+-      if (winningSegment) {
+-        if (currentSegment === winningSegment && frames > segments.length) {
+-          progress = duration / upTime;
+-          angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2 + Math.PI / 2);
+-          progress = 1;
+-        } else {
+-          progress = duration / downTime;
+-          angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2 + Math.PI / 2);
+-        }
+-      } else {
+-        progress = duration / downTime;
+-        angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2 + Math.PI / 2);
+-      }
+  
+-      if (progress >= 1) finished = true;
+-    }
+-
+-    angleCurrent += angleDelta;
+-
+-    while (angleCurrent >= Math.PI * 2) {
+-      angleCurrent -= Math.PI * 2;
+-    }
+-
+-    if (finished) {
+-      setFinished(true);
+-      onFinished(currentSegment);
+-      clearInterval(timerHandle);
+-      timerHandle = 0;
+-      angleDelta = 0;
+-    }
+-  };
+ 
+   var wheelDraw = function wheelDraw() {
+     clear();
+@@ -158,23 +120,21 @@ var WheelComponent = function WheelComponent(_ref) {
+     ctx.restore();
+   };
+ 
+-  var drawWheel = function drawWheel() {
+-    var ctx = canvasContext;
+-    var lastAngle = angleCurrent;
+-    var len = segments.length;
+-    var PI2 = Math.PI * 2;
+-    ctx.lineWidth = 1;
+-    ctx.strokeStyle = primaryColor;
+-    ctx.textBaseline = 'middle';
+-    ctx.textAlign = 'center';
+-    ctx.font = '1em ' + fontFamily;
++  const drawWheel = () => {
++    const ctx = canvasContext;
++    const len = segments.length;
++    const PI2 = Math.PI * 2;
+   
+-    for (var i = 1; i <= len; i++) {
+-      var angle = PI2 * (i / len) + angleCurrent;
+-      drawSegment(i - 1, lastAngle, angle);
+-      lastAngle = angle;
++    // Calculate the starting angle for the first segment
++    let angle = PI2 * (1 / len) + angleCurrent;
++  
++    // Draw each segment
++    for (let i = 0; i < len; i++) {
++      drawSegment(i, angle - PI2 / len, angle);
++      angle += PI2 / len;
+     }
+   
++    // Draw the center circle
+     ctx.beginPath();
+     ctx.arc(centerX, centerY, 50, 0, PI2, false);
+     ctx.closePath();
+@@ -187,35 +147,125 @@ var WheelComponent = function WheelComponent(_ref) {
+     ctx.textAlign = 'center';
+     ctx.fillText(buttonText, centerX, centerY + 3);
+     ctx.stroke();
++  
++    // Draw the outer circle
+     ctx.beginPath();
+     ctx.arc(centerX, centerY, size, 0, PI2, false);
+     ctx.closePath();
+-    ctx.lineWidth = 10;
++    ctx.lineWidth = 12;
+     ctx.strokeStyle = primaryColor;
+     ctx.stroke();
+   };
+   
+-  var drawNeedle = function drawNeedle() {
+-    var ctx = canvasContext;
+-    ctx.lineWidth = 1;
+-    ctx.strokeStyle = contrastColor;
+-    ctx.fileStyle = contrastColor;
+-    ctx.beginPath();
+-    ctx.moveTo(centerX + 20, centerY - 50);
+-    ctx.lineTo(centerX - 20, centerY - 50);
+-    ctx.lineTo(centerX, centerY - 70);
+-    ctx.closePath();
+-    ctx.fill();
+-    var change = angleCurrent + Math.PI / 2;
+-    var i = segments.length - Math.floor(change / (Math.PI * 2) * segments.length) - 1;
+-    if (i < 0) i = i + segments.length;
+-    ctx.textAlign = 'center';
+-    ctx.textBaseline = 'middle';
+-    ctx.fillStyle = primaryColor;
+-    ctx.font = 'bold 1.5em ' + fontFamily;
+-    currentSegment = segments[i];
+-    isStarted && ctx.fillText(currentSegment, centerX + 10, centerY + size + 50);
+-  };
++ // Sửa đổi hàm drawNeedle để vẽ kim
++ const drawNeedle = () => {
++  const ctx = canvasContext;
++  ctx.lineWidth = 10;
++  ctx.strokeStyle = contrastColor;
++  ctx.fillStyle = contrastColor;
++
++  // Tính góc cho kim trỏ vào trung tâm phân đoạn
++  const angleStep = (Math.PI * 2) / segments.length;
++  let needleAngle = angleCurrent + Math.PI / 2 - angleStep / 2;
++
++  // Chuẩn hóa góc kim để giữ nó trong một vòng tròn đầy đủ
++  while (needleAngle >= Math.PI * 2) {
++    needleAngle -= Math.PI * 2;
++  }
++  while (needleAngle < 0) {
++    needleAngle += Math.PI * 2;
++  }
++
++  // Tìm phân đoạn gần nhất với góc kim
++  let closestSegmentIndex = 0;
++  let minAngleDiff = Math.abs(needleAngle - (angleStep / 2));
++  for (let i = 1; i < segments.length; i++) {
++    const angleDiff = Math.abs(needleAngle - (angleStep / 2 + i * angleStep));
++    if (angleDiff < minAngleDiff) {
++      minAngleDiff = angleDiff;
++      closestSegmentIndex = i;
++    }
++  }
++
++  // Tính góc kim đã hiệu chỉnh để trỏ vào trung tâm phân đoạn gần nhất
++  const correctedNeedleAngle = angleStep / 2 + closestSegmentIndex * angleStep;
++
++  // Tính tọa độ đầu kim dựa trên góc đã hiệu chỉnh và trung tâm phân đoạn
++  const needleTipX = centerX + (size / 2) * Math.cos(correctedNeedleAngle);
++  const needleTipY = centerY + (size / 2) * Math.sin(correctedNeedleAngle);
++
++  // Vẽ kim hiệu chỉnh
++  ctx.beginPath();
++  ctx.moveTo(centerX, centerY);
++  ctx.lineTo(needleTipX, needleTipY);
++  ctx.closePath();
++  ctx.stroke();
++
++  ctx.textAlign = 'center';
++  ctx.textBaseline = 'middle';
++  ctx.fillStyle = primaryColor;
++  ctx.font = 'bold 1.5em ' + fontFamily;
++  currentSegment = segments[closestSegmentIndex];
++  isStarted && ctx.fillText(currentSegment, centerX + 10, centerY + size + 50);
++
++  // Lưu góc và tốc độ quay để sử dụng trong việc quay vòng
++  setNeedleAngle(needleAngle);
++  setSpinSpeed(speed);
++};
++
++// Sửa đổi hàm onTimerTick để bao gồm kim quay vòng
++const onTimerTick = () => {
++  frames++;
++  draw();
++  const duration = new Date().getTime() - spinStart;
++  let progress = 0;
++  let finished = false;
++
++  if (duration < upTime) {
++    progress = duration / upTime;
++    angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2);
++  } else {
++    if (winningSegment) {
++      if (currentSegment === winningSegment && frames > segments.length) {
++        progress = duration / upTime;
++        angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2 + Math.PI / 2);
++        progress = 1;
++      } else {
++        progress = duration / downTime;
++        angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2 + Math.PI / 2);
++      }
++    } else {
++      progress = duration / downTime;
++      angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2 + Math.PI / 2);
++    }
++
++    if (progress >= 1) finished = true;
++  }
++
++  angleCurrent += angleDelta;
++
++  while (angleCurrent >= Math.PI * 2) {
++    angleCurrent -= Math.PI * 2;
++  }
++
++  if (finished) {
++    setFinished(true);
++    onFinished(currentSegment);
++    angleCurrent = 0;
++    draw();
++    clearInterval(timerHandle);
++    timerHandle = 0;
++    angleDelta = 0;
++  }
++
++  // Cập nhật tốc độ quay và góc kim để sử dụng trong việc quay vòng
++  setSpinSpeed(speed);
++  setNeedleAngle(needleAngle + (spinSpeed * timerDelay) / 1000);
++};
++  
++  
++  
++  
+ 
+   var clear = function clear() {
+     var ctx = canvasContext;
+@@ -226,7 +276,7 @@ var WheelComponent = function WheelComponent(_ref) {
+     id: "wheel"
+   }, /*#__PURE__*/React__default.createElement("canvas", {
+     id: "canvas",
+-    width: "1000",
++    width: "500",
+     height: "800",
+     style: {
+       pointerEvents: isFinished && isOnlyOnce ? 'none' : 'auto'
+diff --git a/node_modules/react-wheel-of-prizes/dist/index.modern.js b/node_modules/react-wheel-of-prizes/dist/index.modern.js
+index 4aee3fb..ed2e136 100644
+--- a/node_modules/react-wheel-of-prizes/dist/index.modern.js
++++ b/node_modules/react-wheel-of-prizes/dist/index.modern.js
+@@ -6,7 +6,7 @@ var WheelComponent = function WheelComponent(_ref) {
+       winningSegment = _ref.winningSegment,
+       onFinished = _ref.onFinished,
+       _ref$primaryColor = _ref.primaryColor,
+-      primaryColor = _ref$primaryColor === void 0 ? 'black' : _ref$primaryColor,
++      primaryColor = _ref$primaryColor === void 0 ? 'red' : _ref$primaryColor,
+       _ref$contrastColor = _ref.contrastColor,
+       contrastColor = _ref$contrastColor === void 0 ? 'white' : _ref$contrastColor,
+       _ref$buttonText = _ref.buttonText,
+@@ -30,14 +30,14 @@ var WheelComponent = function WheelComponent(_ref) {
+ 
+   var timerHandle = 0;
+   var timerDelay = segments.length;
+-  var angleCurrent = 0;
+-  var angleDelta = 0;
++  var angleCurrent = 1.1;
++  var angleDelta = 0.3;
+   var canvasContext = null;
+   var maxSpeed = Math.PI / ("" + segments.length);
+   var upTime = segments.length * upDuration;
+   var downTime = segments.length * downDuration;
+   var spinStart = 0;
+-  var frames = 0;
++  var frames = 3;
+   var centerX = 300;
+   var centerY = 300;
+   useEffect(function () {
+@@ -68,22 +68,67 @@ var WheelComponent = function WheelComponent(_ref) {
+     canvasContext = canvas.getContext('2d');
+   };
+ 
++  // var spin = function spin() {
++  //   isStarted = true;
++
++  //   if (timerHandle === 0) {
++  //     spinStart = new Date().getTime();
++  //     maxSpeed = Math.PI / segments.length;
++  //     frames = 0;
++  //     timerHandle = setInterval(onTimerTick, timerDelay);
++  //   }
++  // };
+   var spin = function spin() {
+     isStarted = true;
+   
+     if (timerHandle === 0) {
+       spinStart = new Date().getTime();
+-      maxSpeed = Math.PI / segments.length;
++      // Double the maxSpeed to increase the spinning speed
++      maxSpeed = (Math.PI / segments.length) * 2;
+       frames = 0;
++      var spinDuration = 3000; // Duration in milliseconds (e.g., 3000ms = 3 seconds)
++      var intervalTime = 70; // Interval time for updating the wheel (e.g., 50ms)
++      var totalTime = 20;
++  
++      var spinInterval = setInterval(function() {
++        totalTime += intervalTime;
++        var progress = totalTime / spinDuration;
++        var angleDelta = 0;
++        if (progress < 1) {
++          // Apply the acceleration function for smooth spinning
++          angleDelta = maxSpeed * Math.sin(progress * Math.PI / 2);
++        } else {
++          clearInterval(spinInterval);
++          // Calculate the stopping position
++          var stopIndex = Math.floor(angleCurrent / (Math.PI * 2 / segments.length));
++          var middleAngle = (stopIndex + 1) * (Math.PI * 2 / segments.length);
++          angleCurrent = middleAngle;
++          // Notify that the spinning is finished and pass the segment
++          setFinished(true);
++          onFinished(segments[stopIndex]);
++        }
++  
++        angleCurrent += angleDelta;
++  
++        while (angleCurrent >= Math.PI * 2) {
++          angleCurrent -= Math.PI * 2;
++        }
++  
++        draw();
++      }, intervalTime);
+       timerHandle = setInterval(onTimerTick, timerDelay);
+     }
+   };
+   
++  
++  
++  
++
+   var onTimerTick = function onTimerTick() {
+     frames++;
+     draw();
+     var duration = new Date().getTime() - spinStart;
+-    var progress = 0;
++    var progress = 10;
+     var finished = false;
+ 
+     if (duration < upTime) {
+@@ -160,7 +205,7 @@ var WheelComponent = function WheelComponent(_ref) {
+     var lastAngle = angleCurrent;
+     var len = segments.length;
+     var PI2 = Math.PI * 2;
+-    ctx.lineWidth = 1;
++    ctx.lineWidth = 0;
+     ctx.strokeStyle = primaryColor;
+     ctx.textBaseline = 'middle';
+     ctx.textAlign = 'center';
+@@ -176,7 +221,7 @@ var WheelComponent = function WheelComponent(_ref) {
+     ctx.arc(centerX, centerY, 50, 0, PI2, false);
+     ctx.closePath();
+     ctx.fillStyle = primaryColor;
+-    ctx.lineWidth = 10;
++    ctx.lineWidth = 0;
+     ctx.strokeStyle = contrastColor;
+     ctx.fill();
+     ctx.font = 'bold 1em ' + fontFamily;
+@@ -187,33 +232,67 @@ var WheelComponent = function WheelComponent(_ref) {
+     ctx.beginPath();
+     ctx.arc(centerX, centerY, size, 0, PI2, false);
+     ctx.closePath();
+-    ctx.lineWidth = 10;
++    ctx.lineWidth = 0;
+     ctx.strokeStyle = primaryColor;
+     ctx.stroke();
+   };
+ 
++  // var drawNeedle = function drawNeedle() {
++  //   var ctx = canvasContext;
++  //   ctx.lineWidth = 0;
++  //   ctx.strokeStyle = contrastColor;
++  //   ctx.fileStyle = contrastColor;
++  //   ctx.beginPath();
++  //   ctx.moveTo(centerX + 20, centerY - 50);
++  //   ctx.lineTo(centerX - 20, centerY - 50);
++  //   ctx.lineTo(centerX, centerY - 70);
++  //   ctx.closePath();
++  //   ctx.fill();
++  //   var change = angleCurrent + Math.PI / 2;
++  //   var i = segments.length - Math.floor(change / (Math.PI * 2) * segments.length) - 1;
++  //   if (i < 0) i = i + segments.length;
++  //   ctx.textAlign = 'center';
++  //   ctx.textBaseline = 'middle';
++  //   ctx.fillStyle = primaryColor;
++  //   ctx.font = 'bold 1.5em ' + fontFamily;
++  //   currentSegment = segments[i];
++  //   isStarted && ctx.fillText(currentSegment, centerX + 10, centerY + size + 50);
++  // };
+   var drawNeedle = function drawNeedle() {
+     var ctx = canvasContext;
+-    ctx.lineWidth = 1;
++    ctx.lineWidth = 0;
+     ctx.strokeStyle = contrastColor;
+     ctx.fileStyle = contrastColor;
++    
++    // Calculate the middle angle of each segment (60 degrees each for 6 segments)
++    var segmentAngle = Math.PI * 2 / segments.length;
++    
++    // Calculate the index of the current segment
++    var index = Math.floor((angleCurrent - Math.PI / 2) / segmentAngle);
++    if (index < 0) {
++      index = segments.length + index;
++    }
++    
++    // Calculate the middle angle of the current segment
++    var middleAngle = (index + 0.5) * segmentAngle + Math.PI / 2;
++    
++    // Set the angleCurrent to the middle angle of the current segment
++    angleCurrent = middleAngle;
++  
+     ctx.beginPath();
+     ctx.moveTo(centerX + 20, centerY - 50);
+     ctx.lineTo(centerX - 20, centerY - 50);
+     ctx.lineTo(centerX, centerY - 70);
+     ctx.closePath();
+     ctx.fill();
+-    var change = angleCurrent + Math.PI / 2;
+-    var i = segments.length - Math.floor(change / (Math.PI * 2) * segments.length) - 1;
+-    if (i < 0) i = i + segments.length;
+-    ctx.textAlign = 'center';
+-    ctx.textBaseline = 'middle';
+-    ctx.fillStyle = primaryColor;
+-    ctx.font = 'bold 1.5em ' + fontFamily;
+-    currentSegment = segments[i];
++  
++    // No need to calculate the currentSegment here since it was calculated in the previous loop
++    // currentSegment = segments[i];
++  
+     isStarted && ctx.fillText(currentSegment, centerX + 10, centerY + size + 50);
+   };
+   
++
+   var clear = function clear() {
+     var ctx = canvasContext;
+     ctx.clearRect(0, 0, 1000, 800);
